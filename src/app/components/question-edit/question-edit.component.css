@@ -1,0 +1,42 @@
+.wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  padding: 2rem;
+}
+
+.radio-buttons {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.radio-button {
+  margin-bottom: .5rem;
+}
+
+.title {
+  font-size: 1.2rem;
+}
+
+.button-back {
+  margin-right: .5rem;
+}
+
+.question-form {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 60%;
+}
+
+.option-input {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.add-button {
+  margin-bottom: 1rem;
+}

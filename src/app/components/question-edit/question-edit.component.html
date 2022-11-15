@@ -1,0 +1,114 @@
+<div class="wrapper">
+  <p class="title">
+    Let`s edit question!
+  </p>
+
+  <form [formGroup]="createQuestionForm" (ngSubmit)="onSubmit()" class="question-form">
+    <mat-form-field class="question-input-field" appearance="fill">
+      <textarea
+        formControlName="question"
+        matInput
+        placeholder="What`s the difference between var, const and let? *"
+      ></textarea>
+    </mat-form-field>
+
+    <mat-radio-group
+      formControlName="typeOfQuestion"
+      class="radio-buttons"
+      aria-label="Select an option"
+      (input)="chooseTypeOfQuestion($event)"
+    >
+      <mat-radio-button class="radio-button" value="Single">Single Choice</mat-radio-button>
+      <mat-radio-button class="radio-button" value="Multiple">Multiple Choice</mat-radio-button>
+      <mat-radio-button class="radio-button" value="Open">Open</mat-radio-button>
+    </mat-radio-group>
+
+    <div *ngIf="typeOfQuestion === 'Single'" class="container-single-choice">
+      <div *ngFor="let option of listOfCorrectOptions.controls; let idx=index"
+           formArrayName="listOfCorrectOptions">
+        <mat-form-field appearance="fill" [formGroupName]="idx">
+          <mat-label>Correct option</mat-label>
+          <input matInput formControlName="option">
+        </mat-form-field>
+      </div>
+
+      <div
+        *ngFor="let option of listOfWrongOptions.controls; let idx=index"
+        class="option-input"
+        formArrayName="listOfWrongOptions"
+      >
+        <mat-form-field appearance="fill" [formGroupName]="idx">
+          <mat-label>Wrong option №{{idx + 1}}</mat-label>
+          <input matInput formControlName="option">
+        </mat-form-field>
+        <button
+          mat-raised-button
+          class="remove-button"
+          *ngIf="listOfWrongOptions.controls.length > 1"
+          (click)="removeWrongOption(idx)"
+        >Remove
+        </button>
+      </div>
+      <button mat-raised-button class="add-button" (click)="addWrongOption()">Add wrong option</button>
+    </div>
+
+    <div class="container-multiple-choice" *ngIf="typeOfQuestion === 'Multiple'">
+      <div
+        *ngFor="let option of listOfCorrectOptions.controls; let idx=index"
+        class="option-input"
+        formArrayName="listOfCorrectOptions"
+      >
+        <mat-form-field appearance="fill" [formGroupName]="idx">
+          <mat-label>Correct option №{{idx + 1}}</mat-label>
+          <input matInput formControlName="option">
+        </mat-form-field>
+        <button
+          mat-raised-button
+          class="remove-button"
+          *ngIf="listOfCorrectOptions.controls.length > 1"
+          (click)="removeCorrectOption(idx)"
+        >Remove
+        </button>
+      </div>
+      <button
+        mat-raised-button
+        class="add-button"
+        (click)="addCorrectOption()"
+      >Add correct option</button>
+
+      <div *ngFor="let option of listOfWrongOptions.controls; let idx=index"
+           class="option-input" formArrayName="listOfWrongOptions">
+        <mat-form-field appearance="fill" [formGroupName]="idx">
+          <mat-label>Wrong option №{{idx + 1}}</mat-label>
+          <input matInput formControlName="option">
+        </mat-form-field>
+        <button
+          mat-raised-button
+          class="remove-button"
+          *ngIf="listOfWrongOptions.controls.length > 1"
+          (click)="removeWrongOption(idx)"
+        >Remove
+        </button>
+      </div>
+      <button mat-raised-button class="add-button" (click)="addWrongOption()">Add wrong option</button>
+    </div>
+
+    <div
+      class="container-open-choice"
+      *ngIf="typeOfQuestion === 'Open'"
+      formArrayName="listOfCorrectOptions"
+    >
+      <div *ngFor="let option of listOfCorrectOptions.controls; let idx=index">
+        <mat-form-field [formGroupName]="idx" appearance="fill">
+          <mat-label>Correct option</mat-label>
+          <input matInput formControlName="option">
+        </mat-form-field>
+      </div>
+    </div>
+  </form>
+
+  <div class="buttons">
+    <button (click)="previousPage()" class="button-back" mat-raised-button><-Back</button>
+    <button (click)="onSubmit()" class="button-create" mat-raised-button>Edit</button>
+  </div>
+</div>

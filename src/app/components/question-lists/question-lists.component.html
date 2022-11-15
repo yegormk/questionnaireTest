@@ -1,0 +1,97 @@
+<div class="wrapper">
+  <div class="wrapper-columns">
+    <div class="unanswered">
+      <div class="wrapper-single-list" *ngFor="let card of questionCards; index as idx">
+        <mat-card class="card" *ngIf="!card.isAnswered">
+          <mat-card-content>
+            <p class="text-question">{{ card.question }}</p>
+            <p>{{ card.typeOfQuestion }}</p>
+          </mat-card-content>
+
+          <mat-card-subtitle>{{ card.dateOfCreation | date:'dd.MM.yyyy' }}</mat-card-subtitle>
+
+          <mat-card-actions>
+            <div class="options" *ngIf="card.typeOfQuestion === 'Open'">
+              <mat-form-field appearance="fill">
+                <mat-label>Type your answer here</mat-label>
+                <input matInput #open>
+              </mat-form-field>
+
+              <button
+                class="create-button"
+                [disabled]="!(open.value.length > 1)"
+                (click)="answer(idx, open.value)"
+                mat-raised-button
+              >Answer</button>
+            </div>
+
+            <div class="options" *ngIf="card.typeOfQuestion !== 'Open'">
+              <mat-selection-list [multiple]="card.typeOfQuestion === 'Multiple'" #answers>
+                <mat-list-option *ngFor="let option of card.listOfOptions; let indexOfOption" [value]="option">
+                  {{ option.option }}
+                </mat-list-option>
+              </mat-selection-list>
+
+              <button
+                class="create-button"
+                [disabled]="!(answers.selectedOptions.selected.length > 0)"
+                (click)="answer(idx, answers.selectedOptions.selected)"
+                mat-raised-button
+              >Answer</button>
+            </div>
+          </mat-card-actions>
+        </mat-card>
+      </div>
+    </div>
+
+    <div class="answered">
+      <div class="wrapper-single-list" *ngFor="let card of questionCards; index as idx">
+        <mat-card class="card" *ngIf="card.isAnswered">
+          <mat-card-content>
+            <p class="text-question">{{ card.question }}</p>
+            <p class="type-question">{{ card.typeOfQuestion }}</p>
+          </mat-card-content>
+
+          <mat-card-subtitle class="date-question">{{ card.dateOfCreation | date:'dd.MM.yyyy' }}</mat-card-subtitle>
+
+          <mat-card-actions>
+            <mat-form-field appearance="fill" *ngIf="card.typeOfQuestion === 'Open'">
+              <mat-label>Type your answer here</mat-label>
+              <input
+                matInput
+                [value]="card.listOfOptions.length !== 2 ? card.listOfOptions[0].option : card.listOfOptions[1].option"
+                [disabled]="true"
+              >
+              <mat-icon class="correctAnswer" matSuffix *ngIf="card.listOfOptions.length !== 2">check</mat-icon>
+              <mat-icon class="incorrectAnswer" matSuffix *ngIf="card.listOfOptions.length === 2">close</mat-icon>
+            </mat-form-field>
+
+            <mat-radio-group class="radio-buttons" *ngIf="card.typeOfQuestion === 'Single'">
+              <mat-radio-button
+                [ngClass]="{ correctAnswer: option.isRight && option.isChosen, incorrectAnswer: !option.isRight && option.isChosen }"
+                *ngFor="let option of card.listOfOptions"
+                [checked]="option.isChosen"
+                [disabled]="true"
+              >{{ option.option }}</mat-radio-button>
+            </mat-radio-group>
+
+            <mat-radio-group *ngIf="card.typeOfQuestion === 'Multiple'">
+              <mat-checkbox
+                [ngClass]="{ correctAnswer: option.isRight && option.isChosen, incorrectAnswer: !option.isRight && option.isChosen }"
+                *ngFor="let option of card.listOfOptions"
+                [checked]="option.isChosen"
+                [disabled]="true"
+              >{{ option.option }}</mat-checkbox>
+            </mat-radio-group>
+          </mat-card-actions>
+
+          <button class="create-button" (click)="rollBack(idx)" mat-raised-button>Roll Back</button>
+        </mat-card>
+      </div>
+    </div>
+  </div>
+
+  <div class="buttons-management">
+    <button class="create-button" (click)="managementPage()" mat-raised-button>Management page</button>
+  </div>
+</div>
