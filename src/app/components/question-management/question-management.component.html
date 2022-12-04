@@ -1,6 +1,7 @@
+<!--<pre>{{ questionCards$ | async | json}}</pre>-->
 <div class="wrapper">
-  <div *ngIf="isDataExists(); else emptyList">
-    <div class="list-of-cards" *ngFor="let card of questionCards.listOfQuestions; index as idx">
+  <div *ngIf="questionCards$ | async as questionsInfo;">
+    <div class="list-of-cards" *ngFor="let card of questionsInfo.listOfQuestions; index as idx">
       <mat-card class="card">
         <mat-card-content>
           <p class="text-question">{{ card.question }}</p>
@@ -13,24 +14,22 @@
         </mat-card-actions>
       </mat-card>
     </div>
-  </div>
-  <ng-template #emptyList>
-    <p class="empty-list">You haven`t created any question cards yet. <br> So let`s add one!</p>
-  </ng-template>
+    <p *ngIf="questionsInfo.listOfQuestions.length === 0" class="empty-list">You haven`t created any question cards yet. <br> So let`s add one!</p>
 
-  <div class="buttons-management">
-    <button
-      class="create-button"
-      (click)="createQuestion()"
-      mat-raised-button
-    >Create question</button>
+    <div class="buttons-management">
+      <button
+        class="create-button"
+        (click)="createQuestion()"
+        mat-raised-button
+      >Create question</button>
 
-    <button
-      class="create-button"
-      [disabled]="!isDataExists()"
-      (click)="answerQuestions()"
-      mat-raised-button
-    >Answer Questions</button>
+      <button
+        class="create-button"
+        [disabled]="!(questionsInfo.listOfQuestions.length > 0)"
+        (click)="answerQuestions()"
+        mat-raised-button
+      >Answer Questions</button>
+    </div>
   </div>
 </div>
 

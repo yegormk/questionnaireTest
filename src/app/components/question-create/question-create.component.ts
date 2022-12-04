@@ -1,7 +1,22 @@
 import { Component, OnInit } from '@angular/core';
-import { FormArray, FormControl, FormGroup, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
-import { localStorageService } from '../../services/local-storage.service';
+import {
+  FormArray,
+  FormControl,
+  FormGroup,
+  Validators,
+} from '@angular/forms';
+
+import { IOption } from '../../interfaces/question.interfaces';
+import * as questionsActions from '../../store/questions.actions';
+import { Store } from '@ngrx/store';
+import { IAppState } from '../../interfaces/app-state.interfaces';
+import { routerManagement } from '../../services/router-management.service';
+
+enum TypeOfQuestion {
+  Open = 'Open',
+  Single = 'Single',
+  Multiple = 'Multiple',
+}
 
 @Component({
   selector: 'app-question-create',
@@ -9,84 +24,68 @@ import { localStorageService } from '../../services/local-storage.service';
   styleUrls: ['./question-create.component.css'],
 })
 export class QuestionCreateComponent implements OnInit {
-  typeOfQuestion!: string;
   createQuestionForm!: FormGroup;
 
-  constructor(private service: localStorageService) {}
+  constructor(private router: routerManagement, private store: Store<IAppState>) {}
 
   ngOnInit(): void {
     this.createQuestionForm = new FormGroup({
       question: new FormControl('', [Validators.required]),
       typeOfQuestion: new FormControl('', [Validators.required]),
-      listOfCorrectOptions: new FormArray([
-        new FormGroup({
-          option: new FormControl('', Validators.required),
-          isRight: new FormControl(true, Validators.required),
-          isChosen: new FormControl(false, Validators.required),
-        }),
-      ]),
-      listOfWrongOptions: new FormArray([
-        new FormGroup({
-          option: new FormControl('', Validators.required),
-          isRight: new FormControl(false, Validators.required),
-          isChosen: new FormControl(false, Validators.required),
-        }),
-      ]),
+      listOfOptions: new FormArray([]),
     });
   }
 
-  chooseTypeOfQuestion(event: any) {
-    this.typeOfQuestion = event.target.value;
-    if (event.target.value === 'Open') {
-      while (this.listOfWrongOptions.length !== 0) {
-        this.listOfWrongOptions.removeAt(0);
-      }
-    } else if (this.listOfWrongOptions.length === 0) {
-      this.addWrongOption();
+  chooseTypeOfQuestion(event: any): void {
+    while (this.listOfOptions.length !== 0) {
+      this.listOfOptions.removeAt(0);
     }
-    while (this.listOfCorrectOptions.length !== 1) {
-      this.listOfCorrectOptions.removeAt(0);
+    this.addOption('correct');
+    if (event.target.value !== TypeOfQuestion['Open']) {
+      this.addOption('wrong');
     }
   }
 
-  addWrongOption(): void {
-    this.listOfWrongOptions.push(
+  addOption(type: string): void {
+    this.listOfOptions.push(
       new FormGroup({
         option: new FormControl('', Validators.required),
-        isRight: new FormControl(false, Validators.required),
+        isRight: new FormControl(type !== 'wrong', Validators.required),
         isChosen: new FormControl(false, Validators.required),
       }),
     );
   }
 
-  addCorrectOption(): void {
-    this.listOfCorrectOptions.push(
-      new FormGroup({
-        option: new FormControl('', Validators.required),
-        isRight: new FormControl(true, Validators.required),
-        isChosen: new FormControl(false, Validators.required),
-      }),
-    );
+  removeOption(idx: number): void {
+    this.listOfOptions.removeAt(idx);
   }
 
-  removeWrongOption(idx: number): void {
-    this.listOfWrongOptions.removeAt(idx);
+  get listOfOptions() {
+    return this.createQuestionForm.get('listOfOptions') as FormArray;
   }
 
-  get listOfWrongOptions() {
-    return this.createQuestionForm.get('listOfWrongOptions') as FormArray;
+  get amountOfCorrectOptions() {
+    return this.listOfOptions.value.filter((x: IOption) => x.isRight).length;
   }
 
-  get listOfCorrectOptions() {
-    return this.createQuestionForm.get('listOfCorrectOptions') as FormArray;
+  get amountOfWrongOptions() {
+    return this.listOfOptions.value.filter((x: IOption) => !x.isRight).length;
   }
 
-  removeCorrectOption(idx: number): void {
-    this.listOfCorrectOptions.removeAt(idx);
+  get isSingle(): boolean {
+    return this.createQuestionForm.controls['typeOfQuestion'].value === TypeOfQuestion['Single'];
+  }
+
+  get isMultiple(): boolean {
+    return this.createQuestionForm.controls['typeOfQuestion'].value === TypeOfQuestion['Multiple'];
+  }
+
+  get isOpen(): boolean {
+    return this.createQuestionForm.controls['typeOfQuestion'].value === TypeOfQuestion['Open'];
   }
 
   previousPage() {
-    this.service.moveTo('');
+    this.router.moveTo('');
   }
 
   onSubmit(): void {
@@ -94,12 +93,16 @@ export class QuestionCreateComponent implements OnInit {
       return;
     }
 
-    this.service.setQuestionCard({
-      question: this.createQuestionForm.value.question,
-      typeOfQuestion: this.createQuestionForm.value.typeOfQuestion,
-      listOfOptions: this.listOfWrongOptions.value.concat(this.listOfCorrectOptions.value),
-      isAnswered: false,
-      dateOfCreation: new Date(),
-    });
+    this.store.dispatch(
+      questionsActions.addQuestion({
+        question: {
+          question: this.createQuestionForm.value.question,
+          typeOfQuestion: this.createQuestionForm.value.typeOfQuestion,
+          listOfOptions: this.listOfOptions.value,
+          isAnswered: false,
+          dateOfCreation: new Date(),
+        },
+      })
+    );
   }
 }

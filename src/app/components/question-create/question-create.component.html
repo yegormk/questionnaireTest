@@ -1,6 +1,6 @@
 <div class="wrapper">
   <p class="title">
-    Let`s create question!
+    Let`s create a question!
   </p>
 
   <form [formGroup]="createQuestionForm" (ngSubmit)="onSubmit()" class="question-form">
@@ -23,71 +23,91 @@
       <mat-radio-button class="radio-button" value="Open">Open</mat-radio-button>
     </mat-radio-group>
 
-    <div *ngIf="typeOfQuestion === 'Single'" class="container-single-choice">
-      <div *ngFor="let option of listOfCorrectOptions.controls; let idx=index"
-           formArrayName="listOfCorrectOptions">
-        <mat-form-field appearance="fill" [formGroupName] = "idx">
+    <div *ngIf="isSingle" class="container-single-choice">
+      <div *ngFor="let option of listOfOptions.controls; let index=index"
+           formArrayName="listOfOptions">
+        <mat-form-field *ngIf="option.value.isRight" appearance="fill" [formGroupName]="index">
+          <mat-label>Correct option</mat-label>
+          <input matInput formControlName="option">
+        </mat-form-field>
+
+        <div *ngIf="!option.value.isRight"
+             class="option-input">
+          <mat-form-field appearance="fill" [formGroupName]="index">
+            <mat-label>Wrong option</mat-label>
+            <input matInput formControlName="option">
+          </mat-form-field>
+          <button
+            mat-raised-button
+            class="remove-button"
+            *ngIf="amountOfWrongOptions > 1"
+            (click)="removeOption(index)"
+          >Remove</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="container-multiple-choice" *ngIf="isMultiple">
+      <div
+        *ngFor="let option of listOfOptions.controls; let i=index"
+        class="option-input"
+        formArrayName="listOfOptions"
+      >
+        <div *ngIf="option.value.isRight" class="option-input">
+          <mat-form-field appearance="fill" [formGroupName]="i">
+            <mat-label>Correct option</mat-label>
+            <input matInput formControlName="option">
+          </mat-form-field>
+          <button
+            mat-raised-button
+            class="remove-button"
+            *ngIf="amountOfCorrectOptions > 1"
+            (click)="removeOption(i)"
+          >Remove</button>
+        </div>
+
+        <div
+          *ngIf="!option.value.isRight"
+          class="option-input"
+        >
+          <mat-form-field appearance="fill" [formGroupName]="i">
+            <mat-label>Wrong option</mat-label>
+            <input matInput formControlName="option">
+          </mat-form-field>
+          <button
+            mat-raised-button
+            class="remove-button"
+            *ngIf="amountOfWrongOptions > 1"
+            (click)="removeOption(i)"
+          >Remove</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="container-open-choice" *ngIf="isOpen" formArrayName="listOfOptions">
+      <div *ngFor="let option of listOfOptions.controls; let idx=index">
+        <mat-form-field [formGroupName]="idx" appearance="fill">
           <mat-label>Correct option</mat-label>
           <input matInput formControlName="option">
         </mat-form-field>
       </div>
-
-      <div *ngFor="let option of listOfWrongOptions.controls; let idx=index"
-           class="option-input" formArrayName="listOfWrongOptions">
-        <mat-form-field appearance="fill" [formGroupName] = "idx">
-          <mat-label>Wrong option №{{idx + 1}}</mat-label>
-          <input matInput formControlName="option">
-        </mat-form-field>
-        <button
-          mat-raised-button
-          class="remove-button"
-          *ngIf="listOfWrongOptions.controls.length > 1"
-          (click)="removeWrongOption(idx)"
-        >Remove</button>
-      </div>
-      <button mat-raised-button class="add-button" (click)="addWrongOption()">Add wrong option</button>
     </div>
 
-    <div class="container-multiple-choice" *ngIf="typeOfQuestion === 'Multiple'">
-      <div *ngFor="let option of listOfCorrectOptions.controls; let idx=index"
-           class="option-input" formArrayName="listOfCorrectOptions">
-        <mat-form-field appearance="fill" [formGroupName] = "idx">
-          <mat-label>Correct option №{{idx + 1}}</mat-label>
-          <input matInput formControlName="option">
-        </mat-form-field>
-        <button
-          mat-raised-button
-          class="remove-button"
-          *ngIf="listOfCorrectOptions.controls.length > 1"
-          (click)="removeCorrectOption(idx)"
-        >Remove</button>
-      </div>
-      <button mat-raised-button class="add-button" (click)="addCorrectOption()">Add correct option</button>
+    <div class="buttons" *ngIf="createQuestionForm.controls['typeOfQuestion'].value !== ''">
+      <button
+        mat-raised-button
+        class="add-button"
+        (click)="addOption('correct')"
+        *ngIf="!isSingle && !isOpen"
+      >Add correct option</button>
 
-      <div *ngFor="let option of listOfWrongOptions.controls; let idx=index"
-           class="option-input" formArrayName="listOfWrongOptions">
-        <mat-form-field appearance="fill" [formGroupName] = "idx">
-          <mat-label>Wrong option №{{idx + 1}}</mat-label>
-          <input matInput formControlName="option">
-        </mat-form-field>
-        <button
-          mat-raised-button
-          class="remove-button"
-          *ngIf="listOfWrongOptions.controls.length > 1"
-          (click)="removeWrongOption(idx)"
-        >Remove</button>
-      </div>
-      <button mat-raised-button class="add-button" (click)="addWrongOption()">Add wrong option</button>
+      <button
+        mat-raised-button
+        class="add-button"
+        (click)="addOption('wrong')"
+        *ngIf="!isOpen"
+      >Add wrong option</button>
     </div>
-
-    <div class="container-open-choice" *ngIf="typeOfQuestion === 'Open'" formArrayName="listOfCorrectOptions">
-      <div *ngFor="let option of listOfCorrectOptions.controls; let idx=index">
-          <mat-form-field [formGroupName] = "idx" appearance="fill">
-            <mat-label>Correct option</mat-label>
-            <input matInput formControlName="option">
-          </mat-form-field>
-        </div>
-      </div>
   </form>
 
   <div class="buttons">

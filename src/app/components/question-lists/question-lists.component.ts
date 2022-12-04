@@ -1,58 +1,61 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { MatListOption } from '@angular/material/list';
 
-import { IQuestionInfo } from '../../interfaces/question.interfaces';
-import { localStorageService } from '../../services/local-storage.service';
+import { Store } from '@ngrx/store';
+import { selectAllQuestions } from '../../store/questions.selectors';
+import * as questionsActions from '../../store/questions.actions';
 
+import { IAppState } from '../../interfaces/app-state.interfaces';
+import { IQuestionInfo } from '../../interfaces/question.interfaces';
+import { routerManagement } from '../../services/router-management.service';
 
 @Component({
   selector: 'app-question-lists',
   templateUrl: './question-lists.component.html',
   styleUrls: ['./question-lists.component.css'],
 })
-export class QuestionListsComponent implements OnInit, OnDestroy {
-  questionCards!: IQuestionInfo[];
+export class QuestionListsComponent implements OnInit {
+  questionCards$ = this.store.select(selectAllQuestions);
 
-  constructor(private service: localStorageService) {}
+  constructor(private router: routerManagement, private store: Store<IAppState>) {}
 
   ngOnInit(): void {
-    if (this.service.isDataExists()) {
-      this.questionCards = this.service.getQuestionCards().listOfQuestions;
-    }
+    this.store.dispatch(questionsActions.getQuestionCards());
   }
 
   managementPage(): void {
-    this.service.moveTo('');
+    this.router.moveTo('');
   }
 
-  answer(indexOfQuestion: number, answerValue: MatListOption[] | string) {
+  answer(indexOfQuestion: number, answerValue: MatListOption[] | string, oldListOfQuestions: IQuestionInfo[]) {
+    const updatedListOfQuestions: IQuestionInfo[] = JSON.parse(JSON.stringify(oldListOfQuestions));
+
     if (typeof answerValue === 'object') {
       for (let i = 0; i < answerValue.length; i++) {
-        this.questionCards[indexOfQuestion].listOfOptions.map(el => {
-          if (el === answerValue[i].value) el.isChosen = true;
+        updatedListOfQuestions[indexOfQuestion].listOfOptions.map(el => {
+          if (el.option === answerValue[i].value.option) el.isChosen = true;
         });
       }
     } else {
-      this.questionCards[indexOfQuestion].listOfOptions[0].option === answerValue
-        ? (this.questionCards[indexOfQuestion].listOfOptions[0].isChosen = true)
-        : this.questionCards[indexOfQuestion].listOfOptions.push({
+      updatedListOfQuestions[indexOfQuestion].listOfOptions[0].option === answerValue
+        ? (updatedListOfQuestions[indexOfQuestion].listOfOptions[0].isChosen = true)
+        : updatedListOfQuestions[indexOfQuestion].listOfOptions.push({
             option: answerValue,
             isRight: false,
             isChosen: true,
           });
     }
-    this.questionCards[indexOfQuestion].isAnswered = true;
+    updatedListOfQuestions[indexOfQuestion].isAnswered = true;
+    this.store.dispatch(questionsActions.updateQuestionCards({ questions: updatedListOfQuestions }));
   }
 
-  rollBack(index: number) {
-    if (this.questionCards[index].typeOfQuestion === 'Open') {
-      this.questionCards[index].listOfOptions.splice(1, 1);
-    }
-    this.questionCards[index].isAnswered = false;
-    this.questionCards[index].listOfOptions.map(x => (x.isChosen = false));
-  }
+  rollBack(index: number, oldListOfQuestions: IQuestionInfo[]) {
+    const updatedListOfQuestions: IQuestionInfo[] = JSON.parse(JSON.stringify(oldListOfQuestions));
 
-  ngOnDestroy() {
-    this.service.updateQuestionCards({ listOfQuestions: this.questionCards });
+    if (updatedListOfQuestions[index].typeOfQuestion === 'Open')
+      updatedListOfQuestions[index].listOfOptions.splice(1, 1);
+    updatedListOfQuestions[index].isAnswered = false;
+    updatedListOfQuestions[index].listOfOptions.map(x => (x.isChosen = false));
+    this.store.dispatch(questionsActions.updateQuestionCards({ questions: updatedListOfQuestions }));
   }
 }

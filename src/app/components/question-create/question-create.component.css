@@ -16,9 +16,6 @@
   margin-bottom: .5rem;
 }
 
-.question-input-field {
-}
-
 .title {
   font-size: 1.2rem;
 }
@@ -40,11 +37,12 @@
   align-items: baseline;
 }
 
-.container-multiple-choice, .container-open-choice, .container-single-choice {
-
-}
-
 .add-button {
   margin-bottom: 1rem;
+}
+
+.buttons {
+  display: flex;
+  gap: .3rem;
 }
 

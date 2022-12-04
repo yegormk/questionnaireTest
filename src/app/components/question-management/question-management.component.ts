@@ -1,7 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 
-import { IListOfQuestions } from '../../interfaces/question.interfaces';
-import { localStorageService } from '../../services/local-storage.service';
+import { Store } from '@ngrx/store';
+import * as questionsActions from '../../store/questions.actions';
+import { selectAllQuestions } from '../../store/questions.selectors';
+
+import { IAppState } from '../../interfaces/app-state.interfaces';
+import { routerManagement } from '../../services/router-management.service';
 
 @Component({
   selector: 'app-question-management',
@@ -9,34 +13,27 @@ import { localStorageService } from '../../services/local-storage.service';
   styleUrls: ['./question-management.component.css'],
 })
 export class QuestionManagementComponent implements OnInit {
-  questionCards!: IListOfQuestions;
+  questionCards$ = this.store.select(selectAllQuestions);
 
-  constructor(private service: localStorageService) {}
+  constructor(private router: routerManagement, private store: Store<IAppState>) {}
 
   ngOnInit(): void {
-    if (this.isDataExists()) {
-      this.questionCards = this.service.getQuestionCards();
-    }
+    this.store.dispatch(questionsActions.getQuestionCards());
   }
 
-  isDataExists() {
-    return this.service.isDataExists();
+  createQuestion(): void {
+    this.router.moveTo('/create');
   }
 
-  createQuestion() {
-    this.service.moveTo('/create');
+  answerQuestions(): void {
+    this.router.moveTo('/lists');
   }
 
-  answerQuestions() {
-    this.service.moveTo('/lists');
+  editCard(index: number): void {
+    this.router.moveTo(`/edit/${index}`);
   }
 
-  editCard(index: number) {
-    this.service.moveTo(`/edit/${index}`);
-  }
-
-  deleteCard(index: number) {
-    this.questionCards.listOfQuestions.splice(index, 1);
-    this.service.updateQuestionCards(this.questionCards);
+  deleteCard(index: number): void {
+    this.store.dispatch(questionsActions.deleteQuestion({ index: index }));
   }
 }

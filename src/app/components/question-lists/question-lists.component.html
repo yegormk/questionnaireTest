@@ -1,7 +1,7 @@
 <div class="wrapper">
-  <div class="wrapper-columns">
+  <div class="wrapper-columns" *ngIf="questionCards$ | async as questionsInfo">
     <div class="unanswered">
-      <div class="wrapper-single-list" *ngFor="let card of questionCards; index as idx">
+      <div class="wrapper-single-list" *ngFor="let card of questionsInfo.listOfQuestions; index as index">
         <mat-card class="card" *ngIf="!card.isAnswered">
           <mat-card-content>
             <p class="text-question">{{ card.question }}</p>
@@ -19,8 +19,8 @@
 
               <button
                 class="create-button"
-                [disabled]="!(open.value.length > 1)"
-                (click)="answer(idx, open.value)"
+                [disabled]="!(open.value.length > 0)"
+                (click)="answer(index, open.value, questionsInfo.listOfQuestions)"
                 mat-raised-button
               >Answer</button>
             </div>
@@ -35,7 +35,7 @@
               <button
                 class="create-button"
                 [disabled]="!(answers.selectedOptions.selected.length > 0)"
-                (click)="answer(idx, answers.selectedOptions.selected)"
+                (click)="answer(index, answers.selectedOptions.selected, questionsInfo.listOfQuestions)"
                 mat-raised-button
               >Answer</button>
             </div>
@@ -45,7 +45,7 @@
     </div>
 
     <div class="answered">
-      <div class="wrapper-single-list" *ngFor="let card of questionCards; index as idx">
+      <div class="wrapper-single-list" *ngFor="let card of questionsInfo.listOfQuestions; index as index">
         <mat-card class="card" *ngIf="card.isAnswered">
           <mat-card-content>
             <p class="text-question">{{ card.question }}</p>
@@ -66,26 +66,27 @@
               <mat-icon class="incorrectAnswer" matSuffix *ngIf="card.listOfOptions.length === 2">close</mat-icon>
             </mat-form-field>
 
-            <mat-radio-group class="radio-buttons" *ngIf="card.typeOfQuestion === 'Single'">
+            <div class="radio-buttons" *ngIf="card.typeOfQuestion === 'Single'">
               <mat-radio-button
-                [ngClass]="{ correctAnswer: option.isRight && option.isChosen, incorrectAnswer: !option.isRight && option.isChosen }"
                 *ngFor="let option of card.listOfOptions"
+                [ngClass]="{ correctAnswer: option.isRight && option.isChosen, incorrectAnswer: !option.isRight && option.isChosen }"
                 [checked]="option.isChosen"
                 [disabled]="true"
+                [name]="card.question"
               >{{ option.option }}</mat-radio-button>
-            </mat-radio-group>
+            </div>
 
-            <mat-radio-group *ngIf="card.typeOfQuestion === 'Multiple'">
+            <mat-radio-group *ngIf="card.typeOfQuestion === 'Multiple'" class="radio-buttons">
               <mat-checkbox
-                [ngClass]="{ correctAnswer: option.isRight && option.isChosen, incorrectAnswer: !option.isRight && option.isChosen }"
                 *ngFor="let option of card.listOfOptions"
+                [ngClass]="{ correctAnswer: option.isRight && option.isChosen, incorrectAnswer: !option.isRight && option.isChosen }"
                 [checked]="option.isChosen"
                 [disabled]="true"
               >{{ option.option }}</mat-checkbox>
             </mat-radio-group>
           </mat-card-actions>
 
-          <button class="create-button" (click)="rollBack(idx)" mat-raised-button>Roll Back</button>
+          <button class="create-button" (click)="rollBack(index, questionsInfo.listOfQuestions)" mat-raised-button>Roll Back</button>
         </mat-card>
       </div>
     </div>
